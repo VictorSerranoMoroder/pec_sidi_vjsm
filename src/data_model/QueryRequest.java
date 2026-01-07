@@ -17,28 +17,22 @@ public class QueryRequest implements Serializable{
 		ADD_USER,
 	    REMOVE_USER,
 	    BAN_USER,
+	    UNBAN_USER,
 	    ADD_TRINO
     }
 	
 	public final QueryType queryType;
 	public final ProcedureType procedureType;
 	public final Serializable payload;      
-	
-	public final String usernameFilter; // optional, depending on query
-	public final Integer maxResults;    // optional
     
-    public QueryRequest(QueryType queryType, String usernameFilter, Integer maxResults) {
+    public QueryRequest(QueryType queryType, Serializable payload) {
         this.queryType = queryType;
-        this.usernameFilter = usernameFilter;
-        this.maxResults = maxResults;
         this.procedureType = null;
-        this.payload = null; 
+        this.payload = payload; 
     }
     
     public QueryRequest(ProcedureType procedureType, Serializable payload) {
         this.queryType = null;
-        this.usernameFilter = null;
-        this.maxResults = null;
         this.procedureType = procedureType;
         this.payload = payload;
     }

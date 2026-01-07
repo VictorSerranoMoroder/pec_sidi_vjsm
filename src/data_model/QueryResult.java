@@ -17,6 +17,13 @@ public class QueryResult<TClass extends Serializable> implements Serializable{
 		this.data = data;
 	}
 	
+	public QueryResult(QueryRequest request, boolean result)
+	{
+		this.request = request;
+	    this.success = result;
+	    this.data = null;
+	}
+	
 	public QueryResult(QueryRequest request, Optional<TClass> data)
 	{
 		this.request = request;

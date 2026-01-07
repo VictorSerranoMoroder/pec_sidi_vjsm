@@ -14,7 +14,6 @@ import data_model.RegistroRequest;
 public class Cliente {
 	
 	private static Scanner scanner;
-	private static MessageDigest hashProvider;
 	
 	private static void launch_main_menu() {
 	    while (true) {
@@ -28,7 +27,7 @@ public class Cliente {
 
 	        switch (option) {
 	            case 1 -> launch_user_registration();
-	            case 2 -> System.out.println("Login not implemented");
+	            case 2 -> launch_user_login();
 	            case 3 -> System.exit(0);
 	            default -> System.out.println("Opción inválida");
 	        }
@@ -42,20 +41,41 @@ public class Cliente {
 
 	    System.out.print("Introduce contraseña: ");
 	    String password = scanner.nextLine();
-
-	    String hash = bytesToHex(
-	        hashProvider.digest(password.getBytes(StandardCharsets.UTF_8))
-	    );
 		
 	    try {
 	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
 	        ServicioAutenticacionInterface service =
-	            (ServicioAutenticacionInterface) registry.lookup("RegisterService");
+	            (ServicioAutenticacionInterface) registry.lookup("AuthService");
 
 	        boolean success = service.RegistrarUsuario(new RegistroRequest(username,password));
 
 	        System.out.println(
 	            success ? "Usuario registrado" : "Registro fallido"
+	        );
+
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
+	    }
+	}
+	
+	private static void launch_user_login()
+	{
+		System.out.print("Introduce nombre de usuario: ");
+	    String username = scanner.nextLine();
+
+	    System.out.print("Introduce contraseña: ");
+	    String password = scanner.nextLine();
+	    
+	    try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioAutenticacionInterface service =
+	            (ServicioAutenticacionInterface) registry.lookup("AuthService");
+
+	        boolean success = service.AutenticarUsuario(new AutenticacionRequest(username,password));
+
+	        System.out.println(
+	            success ? "Usuario Autenticado, bienvenido" : "Credenciales no correctas."
 	        );
 
 	    } catch (Exception e) {
@@ -79,12 +99,6 @@ public class Cliente {
 	
 	public static void main(String[] str) {
 		scanner = new Scanner(System.in);
-		try {
-			hashProvider = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		launch_main_menu();
 	}
 	

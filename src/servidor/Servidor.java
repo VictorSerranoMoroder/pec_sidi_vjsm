@@ -15,7 +15,7 @@ public class Servidor {
         ServicioAutenticacionInterface service = new ServicioAutenticacionImpl();
 
         // Bind service to registry
-        registry.rebind("RegisterService", service);
+        registry.rebind("AuthService", service);
 
         System.out.println("RMI Server is running...");
 	}

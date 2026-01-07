@@ -4,11 +4,11 @@ import java.io.Serializable;
 
 public final class AutenticacionRequest implements Serializable {
 	private static final long serialVersionUID = 3L;
-	public final String username;
-	public final String password;
+	public final User usuario;
     
     public AutenticacionRequest(String username, String passwordHash) {
-        this.username = username;
-        this.password = passwordHash;
+        usuario = new User();
+    	this.usuario.username = username;
+        this.usuario.password = passwordHash;
     }
 }

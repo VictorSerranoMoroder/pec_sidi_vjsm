@@ -1,3 +1,3 @@
 package data_model.requests;
 
-public record BanUser(String username) implements ProcedureRequest {}
+public record BanUser(String username) implements ProcedureRequest<String> {}

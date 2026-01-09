@@ -9,4 +9,5 @@ module PEC_SIDI_VJSM {
 
 	exports api;
 	exports data_model;
+	exports data_model.requests;
 }

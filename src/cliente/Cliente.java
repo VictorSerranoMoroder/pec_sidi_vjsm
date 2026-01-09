@@ -8,12 +8,15 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 import api.ServicioAutenticacionInterface;
+import api.ServicioGestorInterface;
 import data_model.AutenticacionRequest;
 import data_model.RegistroRequest;
+import data_model.requests.Request;
 
 public class Cliente {
 	
 	private static Scanner scanner;
+	private static String loggedUser;
 	
 	private static void launch_main_menu() {
 	    while (true) {
@@ -29,6 +32,32 @@ public class Cliente {
 	            case 1 -> launch_user_registration();
 	            case 2 -> launch_user_login();
 	            case 3 -> System.exit(0);
+	            default -> System.out.println("Opción inválida");
+	        }
+	    }
+	}
+	
+	private static void launch_user_menu()
+	{
+		while (true) {
+	        System.out.println("""
+	            1.- Información del Usuario.
+	            2.- Enviar Trino
+	            3.- Listar Usuarios
+	            4.- Seguir a
+	            5.- Dejar de seguir a
+	            6.- Salir
+	            """);
+
+	        int option = Integer.parseInt(scanner.nextLine());
+
+	        switch (option) {
+	            case 1 -> launch_user_info();
+	            case 2 -> launch_user_list();
+	            case 3 -> System.out.println("Opcion no implementada");
+	            case 4 -> System.out.println("Opcion no implementada");
+	            case 5 -> System.out.println("Opcion no implementada");
+	            case 6 -> System.out.println("Opcion no implementada");
 	            default -> System.out.println("Opción inválida");
 	        }
 	    }
@@ -77,6 +106,12 @@ public class Cliente {
 	        System.out.println(
 	            success ? "Usuario Autenticado, bienvenido" : "Credenciales no correctas."
 	        );
+	        
+	        if (success)
+	        {
+	        	loggedUser = username;
+	        	launch_user_menu();
+	        }
 
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
@@ -84,17 +119,52 @@ public class Cliente {
 	    }
 	}
 	
-	// Code snippet from https://www.baeldung.com/sha-256-hashing-java
-	private static String bytesToHex(byte[] hash) {
-	    StringBuilder hexString = new StringBuilder(2 * hash.length);
-	    for (int i = 0; i < hash.length; i++) {
-	        String hex = Integer.toHexString(0xff & hash[i]);
-	        if(hex.length() == 1) {
-	            hexString.append('0');
+	private static void launch_user_info()
+	{
+		try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioGestorInterface service =
+	            (ServicioGestorInterface) registry.lookup("GestorService");
+
+	        String result = service.solicitarInfoUsuario(loggedUser);
+
+	        if (result.isEmpty())
+	        {
+	        	System.out.println("Error, no se pudo recoger la informacion del usuario.");
 	        }
-	        hexString.append(hex);
+	        else 
+	        {
+	        	System.out.println(result);
+	        }
+	        
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
 	    }
-	    return hexString.toString();
+	}
+	
+	private static void launch_user_list()
+	{
+		try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioGestorInterface service =
+	            (ServicioGestorInterface) registry.lookup("GestorService");
+
+	        String result = service.listarUsuarios();
+
+	        if (result.isEmpty())
+	        {
+	        	System.out.println("Error, no se pudo recoger la informacion de usuarios.");
+	        }
+	        else 
+	        {
+	        	System.out.println(result);
+	        }
+	        
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
+	    }
 	}
 	
 	public static void main(String[] str) {

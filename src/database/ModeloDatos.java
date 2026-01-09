@@ -21,7 +21,7 @@ public class ModeloDatos {
 	    }
 	};
 	
-	private List<User> users;
+	private List<User> users = new ArrayList<>();
 	private HashMap<String, UserData> userDataMap = new HashMap<>();
 	
 	public ModeloDatos()
@@ -103,6 +103,11 @@ public class ModeloDatos {
 		return users.stream().filter(user -> user.username.equals(usuario)).findFirst();
 	}
 	
+	public List<String> getUsers()
+	{
+		return users.stream().map(user -> user.username).toList();
+	}
+	
 	public Optional<List<String>> getSubscriptions(String username)
 	{
 		return Optional.ofNullable(userDataMap.get(username).subscriptions);
@@ -112,7 +117,4 @@ public class ModeloDatos {
 	{
 		return Optional.ofNullable(userDataMap.get(username).trinos);
 	}
-	
-	
-	
 }

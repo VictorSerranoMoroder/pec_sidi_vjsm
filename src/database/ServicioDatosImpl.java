@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Optional;
 
 import api.ServicioDatosInterface;
-import data_model.QueryRequest;
-import data_model.QueryRequest.ProcedureType;
-import data_model.QueryRequest.QueryType;
-import data_model.QueryResult;
+import data_model.ErrorResult;
+import data_model.Result;
+import data_model.SuccessResult;
 import data_model.User;
+import data_model.requests.*;
+import data_model.requests.Request;
 import data_model.Trino;
 
 public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDatosInterface {
@@ -26,100 +27,93 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
     }
 
 	@Override
-	public QueryResult realizarQuery(QueryRequest request) throws RemoteException {
-		switch (request.queryType) {
-	        case QueryType.GET_USER: {
-	        	User user = (User) request.payload;
-	        	boolean success = authUser(user);
-	            return new QueryResult<>(request, success);
-	        }
-	        case QueryType.GET_FOLLOWERS: {
-	        	String username = (String) request.payload;
-	            Optional<List<String>> result = modeloDatos.getSubscriptions(username);
-	            return new QueryResult<>(
-	            		request, 
-	            		result.isPresent(), 
-	            		// ArrayList<String> is Serializable 
-	            		(Serializable) result.orElse(null));
-	        }
-	        case QueryType.GET_TRINOS: {
-	        	String username = (String) request.payload;
-	            Optional<List<Trino>> result = modeloDatos.getTrinos(username);
-	            return new QueryResult<>(
-	            		request, 
-	            		result.isPresent(), 
-	            		// ArrayList<String> is Serializable 
-	            		(Serializable) result.orElse(null));
-	        }
-	        case QueryType.GET_FEED:
-	            // For example, combine trinos of all users followed
-	            //List<Trino> feed = new ArrayList<>();
-	            //for (String followed : followers.getOrDefault(req.getUsernameFilter(), List.of())) {
-	            //    feed.addAll(trinos.getOrDefault(followed, List.of()));
-	        	return new QueryResult<>(request, Optional.empty());
-	        default:
-	        	return new QueryResult<>(request, Optional.empty());
-	        }
-    }
+	public Result realizarQuery(QueryRequest request) throws RemoteException {
+		return switch (request) {
+			case GetUser q      -> handleGetUser(q);
+	        case GetUsers q     -> handleGetUsers(q);
+	        case GetFollowers q -> handleGetFollowers(q);
+	        case GetTrinos q    -> handleGetTrinos(q);
+	        case GetFeed q      -> handleGetFeed(q);
+		};
+	}
 
 	@Override
-	public QueryResult<Serializable> ejecutarProcedimiento(QueryRequest request) throws RemoteException {
-		if (request.procedureType == null || request.payload == null) {
-	        return new QueryResult<>(request, false, null);
-	    }
-		
-		boolean success = false;
-		
-		switch (request.procedureType) {
-	        case ADD_USER: {
-	            User userToAdd = (User) request.payload;
-	            success = modeloDatos.addUser(userToAdd);
-	            return new QueryResult<>(request, success);
-	        }
-	        case REMOVE_USER: {
-	        	User userToRemove = (User) request.payload;
-	            success = modeloDatos.removeUser(userToRemove);
-	            return new QueryResult<>(request, success);
-	        }
-	        case BAN_USER:
-	        case UNBAN_USER: {
-	            String usernameToSetBan = (String) request.payload;
-	            Optional<User> userToSetBan = modeloDatos.getUser(usernameToSetBan);
-	            if (!userToSetBan.isPresent())
-	            {
-	            	return new QueryResult<>(request, false);
-	            }
-	            userToSetBan.get().setBan(request.procedureType == ProcedureType.BAN_USER ? true : false);
-	            success = modeloDatos.editUser(userToSetBan.get());
-	            return new QueryResult<>(request, success);
-	        }
-	        case ADD_TRINO:
-	            //Trino t = (Trino) request.payload;
-	            //boolean trinoAdded = modeloDatos.addTrino(t);
-	            //return new QueryResult<>(request, Optional.of(trinoAdded));
-	        default:
-	            return new QueryResult<>(request, Optional.empty());
-	    }
+	public Result ejecutarProcedimiento(ProcedureRequest request) throws RemoteException {
+		return switch (request) {
+			case AddTrino p		-> handleAddTrino(p);
+			case AddUser p		-> handleAddUser(p);
+			case BanUser p		-> handleBanUser(p);
+			case UnbanUser p	-> handleUnbanUser(p);
+		};
 	}
 	
-	private boolean authUser(User usuario)
+	private Result handleGetUser(GetUser request)
 	{
-		Optional<User> result = modeloDatos.getUser(usuario.username);
-		
-		if (!result.isPresent())
+		Optional<User> result = modeloDatos.getUser(request.username());
+		if (result.isPresent())
 		{
-			return false;
+			return new SuccessResult<>(request, result.get());
 		}
-		
-		// Check if credentials are correct
-		if (usuario.username.equals(result.get().username) 
-				&& usuario.password.equals(result.get().password))
+		else
 		{
-			return true;
+			return new ErrorResult(request,"No se pudo encontrar el usuario " + request.username());
 		}
-		return false;
 	}
-		
+	
+	private Result handleGetUsers(GetUsers request)
+	{
+		ArrayList<String> users = new ArrayList<String> (modeloDatos.getUsers());
+		if (!users.isEmpty())
+		{
+			return new SuccessResult<>(request, users);
+		}
+		else 
+		{
+			return new ErrorResult(request,"No se pudo crear la lista de usuarios.");
+		}
+	}
+	
+	private Result handleGetFollowers(GetFollowers request)
+	{
+		return null;
+	}
+	
+	private Result handleGetTrinos(GetTrinos request)
+	{
+		return null;
+	}
+	
+	private Result handleGetFeed(GetFeed request)
+	{
+		return null;
+	}
+	
+	private Result handleAddTrino(AddTrino request)
+	{
+		return null;
+	}
+	
+	private Result handleAddUser(AddUser request)
+	{
+		if (modeloDatos.addUser(request.user()))
+		{
+			return new SuccessResult<>(request, true);
+		}
+		else 
+		{
+			return new ErrorResult(request, "No se pudo crear el usuario.");
+		}
+	}
+	
+	private Result handleBanUser(BanUser request)
+	{
+		return null;
+	}
+	
+	private Result handleUnbanUser(UnbanUser request)
+	{
+		return null;
+	}
 }
 
     

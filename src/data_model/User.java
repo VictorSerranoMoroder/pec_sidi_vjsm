@@ -36,4 +36,12 @@ public class User implements Serializable {
     public int hashCode() {
         return Objects.hash(username);
     }
+
+	@Override
+	public String toString() {
+		return "User [isOnline=" + isOnline + ", isBanned=" + isBanned + ", username=" + username + ", password="
+				+ password + "]";
+	}
+    
+    
 }

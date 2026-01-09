@@ -1,6 +1,5 @@
 package servidor;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -9,11 +8,13 @@ import java.rmi.server.UnicastRemoteObject;
 import api.ServicioAutenticacionInterface;
 import api.ServicioDatosInterface;
 import data_model.AutenticacionRequest;
-import data_model.QueryRequest;
-import data_model.QueryResult;
-import data_model.QueryRequest.ProcedureType;
-import data_model.QueryRequest.QueryType;
+import data_model.ErrorResult;
+import data_model.Result;
+import data_model.SuccessResult;
 import data_model.RegistroRequest;
+import data_model.User;
+import data_model.requests.AddUser;
+import data_model.requests.GetUser;
 
 public class ServicioAutenticacionImpl extends UnicastRemoteObject implements ServicioAutenticacionInterface {
 	private static final long serialVersionUID = 3L;
@@ -31,14 +32,20 @@ public class ServicioAutenticacionImpl extends UnicastRemoteObject implements Se
 	        ServicioDatosInterface service =
 	            (ServicioDatosInterface) registry.lookup("ServicioDatos");
 
-	        QueryResult<Serializable> result = service.realizarQuery(new QueryRequest(QueryType.GET_USER, request.usuario));
-
-	        System.out.println(
-	        		result.success ? "Usuario autenticado" : "Autentificacion fallida"
-	        );
+	        Result<User> result = service.realizarQuery(new GetUser(request.usuario.username));
 	        
-	        return result.success;
-
+	        switch(result)
+	        {
+		        case SuccessResult<User> ok -> {
+		        	User data = ok.data();
+		        	return request.usuario.username.equals(data.username) && request.usuario.password.equals(data.password);
+		        }
+		        case ErrorResult err -> {
+		        	System.out.println("Autentificacion fallida");
+		        	System.out.println(err.message());
+		        }
+	        }
+	        
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -56,14 +63,18 @@ public class ServicioAutenticacionImpl extends UnicastRemoteObject implements Se
 	        ServicioDatosInterface service =
 	            (ServicioDatosInterface) registry.lookup("ServicioDatos");
 
-	        QueryResult<Serializable> result = service.ejecutarProcedimiento(new QueryRequest(ProcedureType.ADD_USER, request.usuario));
+	        Result result = service.ejecutarProcedimiento(new AddUser(request.usuario));
 
-	        System.out.println(
-	        		result.success ? "Usuario registrado" : "Registro fallido"
-	        );
+	        switch(result)
+	        {
+		        case SuccessResult<?> ok -> {
+		        	return true;
+		        }
+		        case ErrorResult err -> {
+		        	return false;
+		        }
+	        }
 	        
-	        return result.success;
-
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();

@@ -1,3 +1,5 @@
 package data_model.requests;
 
-public record GetFollowers(String username) implements QueryRequest<String> {}
+import java.util.ArrayList;
+
+public record GetFollowers(String username) implements QueryRequest<ArrayList<String>> {}

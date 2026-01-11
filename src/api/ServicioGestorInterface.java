@@ -11,4 +11,5 @@ public interface ServicioGestorInterface extends Remote {
 	public boolean enviarTrino(Trino trino) throws RemoteException;
 	public String listarUsuarios() throws RemoteException;
 	public boolean editarSubscripcion(String usernameSource, String usernameTarget, boolean isSubscribed) throws RemoteException;
+	public void registrarTrinoCallback(String username, CallbackUsuarioInterface callback) throws RemoteException;
 }

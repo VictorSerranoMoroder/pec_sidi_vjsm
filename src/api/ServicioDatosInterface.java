@@ -11,6 +11,6 @@ import data_model.requests.Request;
 
 
 public interface ServicioDatosInterface extends Remote {
-	public <TClass extends Serializable> Result<TClass> realizarQuery(QueryRequest request) throws RemoteException;
-	public <TClass extends Serializable> Result<TClass> ejecutarProcedimiento(ProcedureRequest request) throws RemoteException;
+	public <TClass extends Serializable> Result<TClass> realizarQuery(QueryRequest<TClass> request) throws RemoteException;
+	public <TClass extends Serializable> Result<TClass> ejecutarProcedimiento(ProcedureRequest<TClass> request) throws RemoteException;
 }

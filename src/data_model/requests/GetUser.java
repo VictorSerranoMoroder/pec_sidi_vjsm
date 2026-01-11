@@ -1,3 +1,5 @@
 package data_model.requests;
 
-public record GetUser(String username) implements QueryRequest<String> {}
+import data_model.User;
+
+public record GetUser(String username) implements QueryRequest<User> {}

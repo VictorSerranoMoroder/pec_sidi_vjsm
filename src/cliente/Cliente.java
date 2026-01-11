@@ -1,17 +1,14 @@
 package cliente;
 
-import java.nio.charset.StandardCharsets;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 import api.ServicioAutenticacionInterface;
 import api.ServicioGestorInterface;
 import data_model.AutenticacionRequest;
 import data_model.RegistroRequest;
-import data_model.requests.Request;
+import data_model.Trino;
 
 public class Cliente {
 	
@@ -53,11 +50,11 @@ public class Cliente {
 
 	        switch (option) {
 	            case 1 -> launch_user_info();
-	            case 2 -> launch_user_list();
-	            case 3 -> System.out.println("Opcion no implementada");
-	            case 4 -> System.out.println("Opcion no implementada");
-	            case 5 -> System.out.println("Opcion no implementada");
-	            case 6 -> System.out.println("Opcion no implementada");
+	            case 2 -> launch_send_trino();
+	            case 3 -> launch_user_list();
+	            case 4 -> launch_follow_user();
+	            case 5 -> launch_unfollow_user();
+	            case 6 -> System.exit(0);
 	            default -> System.out.println("Opción inválida");
 	        }
 	    }
@@ -109,6 +106,10 @@ public class Cliente {
 	        
 	        if (success)
 	        {
+	        	ServicioGestorInterface gestorService = 
+	        			(ServicioGestorInterface) registry.lookup("GestorService");
+	        	// Registrar callback para recibir trinos
+	        	gestorService.registrarTrinoCallback(username, new CallbackUsuarioImpl());
 	        	loggedUser = username;
 	        	launch_user_menu();
 	        }
@@ -167,30 +168,89 @@ public class Cliente {
 	    }
 	}
 	
+	private static void launch_send_trino()
+	{
+		try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioGestorInterface service =
+	            (ServicioGestorInterface) registry.lookup("GestorService");
+
+	        System.out.print("Escribe tu trino: ");
+		    String trino = scanner.nextLine();
+	        
+	        boolean result = service.enviarTrino(new Trino(loggedUser, trino));
+
+	        if (result)
+	        {
+	        	System.out.println("Trino enviado con exito.");
+	        }
+	        else 
+	        {
+	        	System.out.println("Error al enviar el trino.");
+	        }
+	        
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
+	    }
+	}
+	
+	private static void launch_unfollow_user()
+	{
+		try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioGestorInterface service =
+	            (ServicioGestorInterface) registry.lookup("GestorService");
+	        
+	        System.out.print("¿Que usuario quieres dejar de seguir?: ");
+		    String userToFollow = scanner.nextLine();
+
+	        boolean result = service.editarSubscripcion(loggedUser, userToFollow, false);
+
+	        if (result)
+	        {
+	        	System.out.println("Ha dejado de seguir al usuario: " + userToFollow);
+	        }
+	        else 
+	        {
+	        	System.out.println("No se ha podido dejar de seguir al usuario " + userToFollow);
+	        }
+	        
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
+	    }
+	}
+	
+	private static void launch_follow_user()
+	{
+		try {
+	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        ServicioGestorInterface service =
+	            (ServicioGestorInterface) registry.lookup("GestorService");
+	        
+	        System.out.print("¿Que usuario quieres seguir?: ");
+		    String userToFollow = scanner.nextLine();
+
+	        boolean result = service.editarSubscripcion(loggedUser, userToFollow, true);
+
+	        if (result)
+	        {
+	        	System.out.println("Ha comenzado a seguir al usuario: " + userToFollow);
+	        }
+	        else 
+	        {
+	        	System.out.println("No se ha podido seguir al usuario " + userToFollow);
+	        }
+	        
+	    } catch (Exception e) {
+	        System.out.println("Error conectando al servidor");
+	        e.printStackTrace();
+	    }
+	}
+	
 	public static void main(String[] str) {
 		scanner = new Scanner(System.in);
 		launch_main_menu();
 	}
-	
-	/*
-	public static void main(String[] str) throws Exception {
-		
-		scanner = new Scanner(System.in);
-		hashProvider = MessageDigest.getInstance("SHA-256");
-		
-        // Connect to registry
-        Registry registry = LocateRegistry.getRegistry("localhost", 6969);
-
-        // Lookup service
-        RegisterService service =
-                (RegisterService) registry.lookup("RegisterService");
-
-        // Call remote method
-        String response = service.registerUser("Víctor");
-
-        System.out.println(response);
-        
-        scanner.close();
-	}
-	*/
 }

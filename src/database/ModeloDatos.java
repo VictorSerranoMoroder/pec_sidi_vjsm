@@ -34,11 +34,12 @@ public class ModeloDatos {
 		{
 			return false;
 		}
-	
+		
+		userDataMap.put(usuario.username, new UserData());
 		return users.add(usuario);
 	}
 	
-	public boolean addSubscription(String userSource, String userTarget)
+	public boolean addFollower(String userSource, String userTarget)
 	{
 		Optional<User> source = getUser(userSource);
 		if (!source.isPresent())
@@ -98,6 +99,24 @@ public class ModeloDatos {
 		return users.remove(usuario);
 	}
 	
+	public boolean removeFollower(String userSource, String subscriptionToRemove)
+	{
+		Optional<User> source = getUser(userSource);
+		if (!source.isPresent())
+		{
+			return false;
+		}
+		
+		Optional<User> toRemove = getUser(subscriptionToRemove);
+		if (!toRemove.isPresent())
+		{
+			return false;
+		}
+		
+		UserData userdata = userDataMap.get(userSource);
+		return userdata.subscriptions.remove(subscriptionToRemove);
+	}
+	
 	public Optional<User> getUser(String usuario)
 	{
 		return users.stream().filter(user -> user.username.equals(usuario)).findFirst();
@@ -108,13 +127,35 @@ public class ModeloDatos {
 		return users.stream().map(user -> user.username).toList();
 	}
 	
-	public Optional<List<String>> getSubscriptions(String username)
+	public Optional<List<String>> getFollowers(String username)
 	{
-		return Optional.ofNullable(userDataMap.get(username).subscriptions);
+		List<String> followers = new ArrayList<>();
+		userDataMap.forEach((user, data) -> {
+			if (data.subscriptions.contains(username)) {
+				followers.add(user);
+			}
+		});
+		return Optional.ofNullable(followers);
 	}
 	
 	public Optional<List<Trino>> getTrinos(String username)
 	{
 		return Optional.ofNullable(userDataMap.get(username).trinos);
+	}
+	
+	public Optional<String> getFeed(String username)
+	{
+		UserData userdata = userDataMap.get(username);
+		StringBuilder sb = new StringBuilder();
+		userdata.subscriptions.forEach((subscription) -> {
+			Optional<List<Trino>> trinos = getTrinos(subscription);
+			if (trinos.isPresent())
+			{
+				trinos.get().forEach((trino) -> {
+					sb.append(trino.GetTrino()).append(System.lineSeparator());
+				});
+			}
+		});
+		return Optional.ofNullable(sb.toString());
 	}
 }

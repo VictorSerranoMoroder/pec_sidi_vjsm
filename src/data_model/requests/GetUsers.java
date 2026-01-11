@@ -1,3 +1,7 @@
 package data_model.requests;
 
-public record GetUsers() implements QueryRequest {}
+import java.util.ArrayList;
+
+import data_model.User;
+
+public record GetUsers() implements QueryRequest<ArrayList<String>> {}

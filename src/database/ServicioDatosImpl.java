@@ -17,6 +17,7 @@ import data_model.requests.*;
 import data_model.requests.Request;
 import data_model.Trino;
 
+
 public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDatosInterface {
 	private static final long serialVersionUID = 3L;
 	private ModeloDatos modeloDatos;
@@ -32,6 +33,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			case GetUser q      -> handleGetUser(q);
 	        case GetUsers q     -> handleGetUsers(q);
 	        case GetFollowers q -> handleGetFollowers(q);
+	        case GetAllTrinos q -> handleGetAllTrinos(q);
 	        case GetTrinos q    -> handleGetTrinos(q);
 	        case GetFeed q      -> handleGetFeed(q);
 		};
@@ -42,8 +44,10 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		return switch (request) {
 			case AddTrino p		-> handleAddTrino(p);
 			case AddUser p		-> handleAddUser(p);
+			case AddFollower p  -> handleAddFollower(p);
 			case BanUser p		-> handleBanUser(p);
 			case UnbanUser p	-> handleUnbanUser(p);
+			case RemoveFollower p -> handleRemoveFollower(p);
 		};
 	}
 	
@@ -52,7 +56,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		Optional<User> result = modeloDatos.getUser(request.username());
 		if (result.isPresent())
 		{
-			return new SuccessResult<>(request, result.get());
+			return new SuccessResult<User>(request, result.get());
 		}
 		else
 		{
@@ -75,7 +79,32 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 	
 	private Result handleGetFollowers(GetFollowers request)
 	{
-		return null;
+		// Si el opcional contiene un nulo significa que el intento de recuperar los datos ha fallado
+		// que un usuario no tenga seguidores no es un fallo, por lo que no debemos de comprobar si la lista está vacía
+		Optional<List<String>> followers = modeloDatos.getFollowers(request.username());
+		
+		if (followers.isPresent())
+		{
+			return new SuccessResult<ArrayList<String>>(request, (ArrayList<String>)followers.get());
+		}
+		else 
+		{
+			return new ErrorResult(request, "Fallo al recuperar los seguidores");
+		}
+	}
+	
+	private Result handleGetAllTrinos(GetAllTrinos request)
+	{
+		ArrayList<Trino> result = new ArrayList<>();
+		List<String> users = modeloDatos.getUsers();
+		users.forEach(username -> {
+			Optional<List<Trino>> resultSet = modeloDatos.getTrinos(username);
+			if (resultSet.isPresent())
+			{
+				result.addAll(resultSet.get());
+			}
+		});
+		return new SuccessResult<ArrayList<Trino>>(request, result);
 	}
 	
 	private Result handleGetTrinos(GetTrinos request)
@@ -85,12 +114,29 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 	
 	private Result handleGetFeed(GetFeed request)
 	{
-		return null;
+		Optional<String> feed =modeloDatos.getFeed(request.username());
+		if (feed.isPresent())
+		{
+			return new SuccessResult<>(request, feed.get());
+		}
+		else
+		{
+			return new ErrorResult(request,"No se pudo recuperar el feed");
+		}
 	}
 	
 	private Result handleAddTrino(AddTrino request)
 	{
-		return null;
+		boolean success = modeloDatos.addTrino(request.trino().GetNickPropietario(), request.trino().GetTrino());
+		
+		if (success)
+		{
+			return new SuccessResult<>(request, true);
+		}
+		else 
+		{
+			return new ErrorResult(request, "No se pudo añadir el trino");
+		}
 	}
 	
 	private Result handleAddUser(AddUser request)
@@ -105,14 +151,60 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		}
 	}
 	
+	private Result handleAddFollower(AddFollower request)
+	{
+		boolean success = modeloDatos.addFollower(request.userSource(), request.userTarget());
+		
+		if (success)
+		{
+			return new SuccessResult<>(request, true);
+		}
+		else
+		{
+			return new ErrorResult(request, "No se pudo completar la operacion");
+		}
+	}
+	
 	private Result handleBanUser(BanUser request)
 	{
-		return null;
+		Optional<User> user = modeloDatos.getUser(request.username());
+		if (user.isPresent())
+		{
+			user.get().isBanned = true;
+			return new SuccessResult<>(request, true);
+		}
+		else 
+		{
+			return new ErrorResult(request, "No se pudo banear al usuario.");
+		}
 	}
 	
 	private Result handleUnbanUser(UnbanUser request)
 	{
-		return null;
+		Optional<User> user = modeloDatos.getUser(request.username());
+		if (user.isPresent())
+		{
+			user.get().isBanned = false;
+			return new SuccessResult<>(request, true);
+		}
+		else 
+		{
+			return new ErrorResult(request, "No se pudo unbanear al usuario.");
+		}
+	}
+	
+	private Result handleRemoveFollower(RemoveFollower request)
+	{
+		boolean success = modeloDatos.removeFollower(request.userSource(), request.userTarget());
+		
+		if (success)
+		{
+			return new SuccessResult<>(request, true);
+		}
+		else 
+		{
+			return new ErrorResult(request, "Error al eliminar subscripcion");
+		}
 	}
 }
 

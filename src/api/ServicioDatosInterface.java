@@ -4,10 +4,10 @@ import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import data_model.Result;
-import data_model.requests.ProcedureRequest;
-import data_model.requests.QueryRequest;
-import data_model.requests.Request;
+import data_model.Request;
+import data_model.db_requests.ProcedureRequest;
+import data_model.db_requests.QueryRequest;
+import data_model.results.Result;
 
 
 public interface ServicioDatosInterface extends Remote {

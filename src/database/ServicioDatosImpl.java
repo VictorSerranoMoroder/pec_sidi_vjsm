@@ -9,12 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 import api.ServicioDatosInterface;
-import data_model.ErrorResult;
-import data_model.Result;
-import data_model.SuccessResult;
 import data_model.User;
-import data_model.requests.*;
-import data_model.requests.Request;
+import data_model.db_requests.*;
+import data_model.results.ErrorResult;
+import data_model.results.Result;
+import data_model.results.SuccessResult;
 import data_model.Trino;
 
 
@@ -48,6 +47,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			case BanUser p		-> handleBanUser(p);
 			case UnbanUser p	-> handleUnbanUser(p);
 			case RemoveFollower p -> handleRemoveFollower(p);
+			case SetOnlineUser p -> handleSetOnlineUser(p);
 		};
 	}
 	
@@ -204,6 +204,24 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		else 
 		{
 			return new ErrorResult(request, "Error al eliminar subscripcion");
+		}
+	}
+	
+	private Result handleSetOnlineUser(SetOnlineUser request)
+	{
+		Optional<User> user = modeloDatos.getUser(request.username());
+		if (user.isPresent())
+		{
+			if (user.get().isOnline)
+			{
+				return new ErrorResult(request, "Error, usuario ya autenticado: "+ request.username());
+			}
+			user.get().isOnline = request.online();
+			return new SuccessResult<>(request, null);
+		}
+		else 
+		{
+			return new ErrorResult(request, "Error, no se encontró el usuario: "+ request.username());
 		}
 	}
 }

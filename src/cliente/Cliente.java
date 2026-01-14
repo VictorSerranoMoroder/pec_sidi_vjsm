@@ -6,9 +6,13 @@ import java.util.Scanner;
 
 import api.ServicioAutenticacionInterface;
 import api.ServicioGestorInterface;
-import data_model.AutenticacionRequest;
-import data_model.RegistroRequest;
 import data_model.Trino;
+import data_model.results.ErrorResult;
+import data_model.results.Result;
+import data_model.results.SuccessResult;
+import data_model.svr_requests.AuthenticateUser;
+import data_model.svr_requests.SignUpRequest;
+import servidor.Servidor;
 
 public class Cliente {
 	
@@ -37,6 +41,7 @@ public class Cliente {
 	private static void launch_user_menu()
 	{
 		while (true) {
+			System.out.println("Usuario: "+ loggedUser);
 	        System.out.println("""
 	            1.- Información del Usuario.
 	            2.- Enviar Trino
@@ -69,16 +74,21 @@ public class Cliente {
 	    String password = scanner.nextLine();
 		
 	    try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioAutenticacionInterface service =
 	            (ServicioAutenticacionInterface) registry.lookup("AuthService");
 
-	        boolean success = service.RegistrarUsuario(new RegistroRequest(username,password));
+	        Result result = service.RegistrarUsuario(new SignUpRequest(username,password));
 
-	        System.out.println(
-	            success ? "Usuario registrado" : "Registro fallido"
-	        );
-
+	        switch(result)
+	        {
+		        case SuccessResult<?> ok -> {
+		        	System.out.println("Usuario creado");
+		        }
+		        case ErrorResult err -> {
+		        	System.out.println(err.message());
+		        }
+	        }
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -94,26 +104,27 @@ public class Cliente {
 	    String password = scanner.nextLine();
 	    
 	    try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioAutenticacionInterface service =
 	            (ServicioAutenticacionInterface) registry.lookup("AuthService");
 
-	        boolean success = service.AutenticarUsuario(new AutenticacionRequest(username,password));
+	        Result result = service.AutenticarUsuario(new AuthenticateUser(username,password));
 
-	        System.out.println(
-	            success ? "Usuario Autenticado, bienvenido" : "Credenciales no correctas."
-	        );
-	        
-	        if (success)
+	        switch(result)
 	        {
-	        	ServicioGestorInterface gestorService = 
-	        			(ServicioGestorInterface) registry.lookup("GestorService");
-	        	// Registrar callback para recibir trinos
-	        	gestorService.registrarTrinoCallback(username, new CallbackUsuarioImpl());
-	        	loggedUser = username;
-	        	launch_user_menu();
+		        case SuccessResult<?> ok -> {
+		        	ServicioGestorInterface gestorService = 
+		        			(ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
+		        	// Registrar callback para recibir trinos
+		        	gestorService.registrarTrinoCallback(username, new CallbackUsuarioImpl());
+		        	loggedUser = username;
+		        	System.out.println("Usuario autentificado, bienvenid@ "+username);
+		        	launch_user_menu();
+		        }
+		        case ErrorResult err -> {
+		        	System.out.println(err.message());
+		        }
 	        }
-
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -123,9 +134,9 @@ public class Cliente {
 	private static void launch_user_info()
 	{
 		try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioGestorInterface service =
-	            (ServicioGestorInterface) registry.lookup("GestorService");
+	            (ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
 
 	        String result = service.solicitarInfoUsuario(loggedUser);
 
@@ -147,9 +158,9 @@ public class Cliente {
 	private static void launch_user_list()
 	{
 		try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioGestorInterface service =
-	            (ServicioGestorInterface) registry.lookup("GestorService");
+	            (ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
 
 	        String result = service.listarUsuarios();
 
@@ -171,9 +182,9 @@ public class Cliente {
 	private static void launch_send_trino()
 	{
 		try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioGestorInterface service =
-	            (ServicioGestorInterface) registry.lookup("GestorService");
+	            (ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
 
 	        System.out.print("Escribe tu trino: ");
 		    String trino = scanner.nextLine();
@@ -198,9 +209,9 @@ public class Cliente {
 	private static void launch_unfollow_user()
 	{
 		try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioGestorInterface service =
-	            (ServicioGestorInterface) registry.lookup("GestorService");
+	            (ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
 	        
 	        System.out.print("¿Que usuario quieres dejar de seguir?: ");
 		    String userToFollow = scanner.nextLine();
@@ -225,9 +236,9 @@ public class Cliente {
 	private static void launch_follow_user()
 	{
 		try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45001);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Servidor.PORT);
 	        ServicioGestorInterface service =
-	            (ServicioGestorInterface) registry.lookup("GestorService");
+	            (ServicioGestorInterface) registry.lookup(Servidor.GESTSERVICENAME);
 	        
 	        System.out.print("¿Que usuario quieres seguir?: ");
 		    String userToFollow = scanner.nextLine();
@@ -251,6 +262,7 @@ public class Cliente {
 	
 	public static void main(String[] str) {
 		scanner = new Scanner(System.in);
+		System.out.println("RMI Client is running...");
 		launch_main_menu();
 	}
 }

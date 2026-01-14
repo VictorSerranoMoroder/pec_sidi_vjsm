@@ -8,13 +8,13 @@ import java.util.Scanner;
 
 import api.ServicioAutenticacionInterface;
 import api.ServicioDatosInterface;
-import data_model.ErrorResult;
-import data_model.Result;
-import data_model.SuccessResult;
 import data_model.Trino;
-import data_model.requests.GetAllTrinos;
-import data_model.requests.GetTrinos;
-import data_model.requests.GetUsers;
+import data_model.db_requests.GetAllTrinos;
+import data_model.db_requests.GetTrinos;
+import data_model.db_requests.GetUsers;
+import data_model.results.ErrorResult;
+import data_model.results.Result;
+import data_model.results.SuccessResult;
 import servidor.ServicioAutenticacionImpl;
 
 public class Basededatos {
@@ -46,7 +46,7 @@ public class Basededatos {
 	{
 		System.out.println("--- Informacion de la Base de Datos ---");
 		System.out.println("Servicios remotos registrados:");
-		System.out.println("rmi://localhost:"+ PORT +"/ServicioDatos/Basededatos\"");
+		System.out.println("rmi://localhost:"+ PORT +"/"+SERVICENAME+"-/Basededatos\"");
 		System.out.println("---------------------------------------");
 	}
 	

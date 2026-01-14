@@ -11,7 +11,11 @@ public class User implements Serializable {
 	public String username;
 	public String password;
 	
-	
+	public User(String username, String password)
+	{
+		this.username = username;
+		this.password = password;
+	}
 	
 	public void setOnline(boolean online)
 	{
@@ -42,6 +46,4 @@ public class User implements Serializable {
 		return "User [isOnline=" + isOnline + ", isBanned=" + isBanned + ", username=" + username + ", password="
 				+ password + "]";
 	}
-    
-    
 }

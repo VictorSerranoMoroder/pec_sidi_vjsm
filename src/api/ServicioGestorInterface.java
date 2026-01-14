@@ -3,7 +3,6 @@ package api;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-import data_model.RegistroRequest;
 import data_model.Trino;
 
 public interface ServicioGestorInterface extends Remote {

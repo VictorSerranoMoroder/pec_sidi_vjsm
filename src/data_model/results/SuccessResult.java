@@ -1,7 +1,8 @@
-package data_model;
+package data_model.results;
 
 import java.io.Serializable;
-import data_model.requests.Request;
+
+import data_model.Request;
 
 public record SuccessResult<TClass extends Serializable>(
 	    Request request,

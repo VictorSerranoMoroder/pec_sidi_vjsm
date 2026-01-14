@@ -1,6 +1,5 @@
 package servidor;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -13,18 +12,17 @@ import java.util.Optional;
 import api.CallbackUsuarioInterface;
 import api.ServicioDatosInterface;
 import api.ServicioGestorInterface;
-import data_model.ErrorResult;
-import data_model.Result;
-import data_model.SuccessResult;
 import data_model.Trino;
 import data_model.User;
-import data_model.requests.AddFollower;
-import data_model.requests.AddTrino;
-import data_model.requests.GetFollowers;
-import data_model.requests.GetUser;
-import data_model.requests.GetUsers;
-import data_model.requests.RemoveFollower;
-import data_model.requests.Request;
+import data_model.db_requests.AddFollower;
+import data_model.db_requests.AddTrino;
+import data_model.db_requests.GetFollowers;
+import data_model.db_requests.GetUser;
+import data_model.db_requests.GetUsers;
+import data_model.db_requests.RemoveFollower;
+import data_model.results.ErrorResult;
+import data_model.results.Result;
+import data_model.results.SuccessResult;
 import database.Basededatos;
 
 public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioGestorInterface {
@@ -97,7 +95,19 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 			        			if(cb.isPresent())
 			        			{
 			        				try {
-										cb.get().recibirTrino(trino);
+			        					// Hay que recuperar los datos del usuario para comprobar si está bloqueado
+			        					Result <User> userResult = service.realizarQuery(new GetUser(username));
+			        					
+			        					switch (userResult) {
+				        					case SuccessResult<User> okGetUser -> {
+				        						if (!okGetUser.data().isBanned)
+				        						{
+				        							// Si no está baneado se llama al callback
+				        							cb.get().recibirTrino(trino);
+				        						}
+				        					}
+				        					case ErrorResult errGetUser -> {}
+			        					}
 									} catch (RemoteException e) {
 										// En caso de error podemos deducir que o el callback es inválido o el cliente se ha desconectado
 										// En ambos casos eliminamos la entrada en el diccionario
@@ -143,9 +153,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 			        return sb.toString();
 		        }
 		        case ErrorResult err -> {
-		        	System.out.println("No se pudo recuperar la informacion de usuario");
-		        	System.out.println(err.message());
-		        	return new String();
+		        	return err.message();
 		        }
 	        }
 	        

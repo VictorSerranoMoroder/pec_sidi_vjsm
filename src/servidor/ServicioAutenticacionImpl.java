@@ -7,14 +7,16 @@ import java.rmi.server.UnicastRemoteObject;
 
 import api.ServicioAutenticacionInterface;
 import api.ServicioDatosInterface;
-import data_model.AutenticacionRequest;
-import data_model.ErrorResult;
-import data_model.Result;
-import data_model.SuccessResult;
-import data_model.RegistroRequest;
 import data_model.User;
-import data_model.requests.AddUser;
-import data_model.requests.GetUser;
+import data_model.db_requests.AddUser;
+import data_model.db_requests.GetUser;
+import data_model.db_requests.SetOnlineUser;
+import data_model.results.ErrorResult;
+import data_model.results.Result;
+import data_model.results.SuccessResult;
+import data_model.svr_requests.AuthenticateUser;
+import data_model.svr_requests.SignUpRequest;
+import database.Basededatos;
 
 public class ServicioAutenticacionImpl extends UnicastRemoteObject implements ServicioAutenticacionInterface {
 	private static final long serialVersionUID = 3L;
@@ -24,62 +26,51 @@ public class ServicioAutenticacionImpl extends UnicastRemoteObject implements Se
     }
 
     @Override
-    public boolean AutenticarUsuario(AutenticacionRequest request) throws RemoteException {
-    	System.out.println("Solicitud de Autenticacion recibida.");
-    	
+    public Result AutenticarUsuario(AuthenticateUser request) throws RemoteException {	
     	try {
-	        Registry registry = LocateRegistry.getRegistry("localhost", 45002);
+	        Registry registry = LocateRegistry.getRegistry("localhost", Basededatos.PORT);
 	        ServicioDatosInterface service =
-	            (ServicioDatosInterface) registry.lookup("ServicioDatos");
+	            (ServicioDatosInterface) registry.lookup(Basededatos.SERVICENAME);
+	        
 
-	        Result<User> result = service.realizarQuery(new GetUser(request.usuario.username));
+	        Result<User> result = service.realizarQuery(new GetUser(request.username()));
 	        
 	        switch(result)
 	        {
 		        case SuccessResult<User> ok -> {
 		        	User data = ok.data();
-		        	return request.usuario.username.equals(data.username) && request.usuario.password.equals(data.password);
+		        	// Si las credenciales son correctas, loguear
+		        	if (request.username().equals(data.username) && request.password().equals(data.password))
+		        	{
+		        		// Al loguear hay que cambiar el estado del usuario a conectado
+		        		Result logInResult = service.ejecutarProcedimiento(new SetOnlineUser(request.username(), true));
+		        		return logInResult;
+		        	}
+		        	else 
+		        	{
+		        		return new ErrorResult(request, "Credenciales incorrectas");
+		        	}
 		        }
 		        case ErrorResult err -> {
-		        	System.out.println("Autentificacion fallida");
-		        	System.out.println(err.message());
+		        	return new ErrorResult(request, "Fallo al adquirir Usuario.");
 		        }
 	        }
-	        
 	    } catch (Exception e) {
-	        System.out.println("Error conectando al servidor");
-	        e.printStackTrace();
+	    	return new ErrorResult(request, "Error de conexion");
 	    }
-        return false;
     }
 
 	@Override
-	public boolean RegistrarUsuario(RegistroRequest request) throws RemoteException {
-		// TODO Auto-generated method stub
-		System.out.println("Solicitud de Registro recibida.");
-    	
+	public Result RegistrarUsuario(SignUpRequest request) throws RemoteException {
     	try {
 	        Registry registry = LocateRegistry.getRegistry("localhost", 45002);
 	        ServicioDatosInterface service =
 	            (ServicioDatosInterface) registry.lookup("ServicioDatos");
-
-	        Result result = service.ejecutarProcedimiento(new AddUser(request.usuario));
-
-	        switch(result)
-	        {
-		        case SuccessResult<?> ok -> {
-		        	return true;
-		        }
-		        case ErrorResult err -> {
-		        	return false;
-		        }
-	        }
-	        
+	      
+	        Result result = service.ejecutarProcedimiento(new AddUser(new User(request.username(), request.password())));
+	        return result;
 	    } catch (Exception e) {
-	        System.out.println("Error conectando al servidor");
-	        e.printStackTrace();
+	        return new ErrorResult(request, "Error de conexion al servidor");
 	    }
-    	
-		return false;
 	}
 }

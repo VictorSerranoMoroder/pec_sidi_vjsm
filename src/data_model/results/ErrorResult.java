@@ -1,6 +1,6 @@
-package data_model;
+package data_model.results;
 
-import data_model.requests.Request;
+import data_model.Request;
 
 public record ErrorResult(
 	    Request request,

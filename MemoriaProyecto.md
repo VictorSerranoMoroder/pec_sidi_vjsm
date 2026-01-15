@@ -1,5 +1,5 @@
 # Memoria de Prueba de Evaluación Contínua SIDI
-> Uned Curso 2025-2026 -- Autor: Víctor Javier Serrano Moroder
+> Uned Curso 2025-2026 --- Autor: Víctor Javier Serrano Moroder
 
 [Visita el proyecto y la memoria en markdown.](https://github.com/VictorSerranoMoroder/pec_sidi_vjsm)
 
@@ -71,7 +71,6 @@ El proyecto sigue un patrón clásico cliente-servidor distribuido donde se inte
 
 **Comunicación**: Todo se realiza mediante Remote Method Invocation (RMI), que permite invocar métodos de objetos remotos como si fueran locales, ocultando la complejidad de la red.
 
-![https://reactiveprogramming.io/_next/image?url=%2Ffigures%2Fcliente-servidor.png&w=640&q=75](images/image.png)
 
 #### 3.2 Patrón Result
 Para la comunicación de Servidor-Basededatos, se ha utilizado el patrón de **Result**. Es una técnica que se utiliza para manejar resultados exitosos o errores en una operación. Generalmente presenta la siguiente forma:
@@ -121,6 +120,11 @@ public record ErrorResult(
 
 Si el resultado es correcto se envía un objeto tipo `SuccessResult` y en caso de error se devuelve un objeto de tipo `ErrorResult`.
 
+
+A continuación se muestra un diagrama uml del patrón **Result** aplicado a este proyecto:
+
+![Result Diagram](images/image.png)
+
 #### 3.3 Interfaces selladas y Pattern Matching
 Las interfaces `sealed` son una característica introducida a partir de la versión 17 que permite restringir qué clases o interfaces pueden implementarla, proporcionando un control más estricto sobre la herencia y la extensibilidad.
 
@@ -138,6 +142,10 @@ public sealed interface QueryRequest<TClass extends Serializable> extends Reques
 public sealed interface ProcedureRequest<TClass extends Serializable> extends Request
     permits AddUser, AddTrino, AddFollower, BanUser, UnbanUser, RemoveFollower {}
 ```
+
+A continuación se muestra un diagrama uml del Request aplicado a este proyecto:
+
+![alt text](images/image-1.png)
 
 Las interfaces previas nos permiten crear un **dispatcher** haciendo uso del pattern matching como se muestra en el snippet haciendo que la llamada a los handlers sea muy visual y fácil de extender y modificar:
 ```java
@@ -166,8 +174,11 @@ Las interfaces previas nos permiten crear un **dispatcher** haciendo uso del pat
 		};
 	}
 ```
+A continuación se muestra un diagrama de como se representa el dispatcher en uml:
 
-#### 3.6 Callbacks y patrón Observer
+![alt text](images/image-2.png)
+
+#### 3.4 Callbacks y patrón Observer
 Para permitir notificaciones push de nuevos trinos a los usuarios que siguen a otros usuarios, se implementa un patrón Observer distribuido usando RMI. La idea es que cada vez que un usuario publica un trino, todos sus seguidores conectados reciben el trino sin necesidad de hacer ninguna petición rutinaria al servidor. Para ello participan los siguientes actores:
 
 - **CallbackUsuarioInterface**: interfaz remota que define el método que el cliente implementará para recibir notificaciones:
@@ -245,6 +256,10 @@ case SuccessResult<?> ok -> {
     }
 }
 ```
+
+A continuación se muestra un diagrama de UML del patrón Observer aplicado en el proyecto:
+
+![alt text](images/image-3.png)
 
 
 ## 4. Base de datos
@@ -402,6 +417,10 @@ switch(result)
 }
 ```
 
+Aquí se muestra un diagrama orientativo del flujo de datos y las clases que participan en la comunicación entre servidor y base de datos:
+
+![alt text](images/image-4.png)
+
 ## 4. Ventajas del diseño
 1. **Type Safety**
     - Las `Request` y `Result` parametrizadas permiten que el compilador verifique en tiempo de compilación los tipos de datos que se envían y reciben.
@@ -417,6 +436,6 @@ El proyecto implementa un sistema de microblogging sencillo haciendo uso de **Ja
 - Garantiza una gestión robusta de los resultados
 - Diseñado sobre escalabilidad y fácil mantenimiento
 
-El proyecto ha sido realizado usando el IDE de Eclipse y la memoria está originalmente escrita en markdown, además el source del proyecto se puede encontrar en el siguiente repositorio:
+El proyecto ha sido realizado usando el IDE de Eclipse, la memoria está originalmente escrita en markdown y los diagramas están hechos con plantuml, además el source del proyecto se puede encontrar en el siguiente repositorio:
 
 [Visita el proyecto y la memoria en markdown.](https://github.com/VictorSerranoMoroder/pec_sidi_vjsm)

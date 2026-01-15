@@ -1,3 +1,20 @@
+/*
+ * Servidor.java
+ * Copyright (C) 2025 Víctor Serrano Moroder vserrano157@alumno.uned.es
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package servidor;
 
 import java.rmi.RemoteException;
@@ -22,11 +39,11 @@ import database.Basededatos;
 public class Servidor {
 	public static final String AUTHSERVICENAME = "AuthService";
 	public static final String GESTSERVICENAME = "GestorService";
-	public static final int PORT = 45001; 
+	public static final int PORT = 45001;
 	private static Scanner scanner;
 	private static ServicioAutenticacionInterface authService;
 	private static ServicioGestorInterface gestorService;
-	
+
 	private static void launchMainMenu() {
 	    while (true) {
 	        System.out.println("""
@@ -51,7 +68,7 @@ public class Servidor {
 	        }
 	    }
 	}
-	
+
 	private static void launchServerInfoQuery()
 	{
 		System.out.println("--- Informacion de la Base de Datos ---");
@@ -60,7 +77,7 @@ public class Servidor {
 		System.out.println("rmi://localhost:"+ PORT +"/"+gestorService+"-/Servidor\"");
 		System.out.println("---------------------------------------");
 	}
-	
+
 	private static void launchListRegisteredUsers()
 	{
 		try {
@@ -83,13 +100,13 @@ public class Servidor {
 		        	System.out.println(err.message());
 		        }
 	        }
-	        
+
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
 	    }
 	}
-	
+
 	private static void launchListLoggedInUsers()
 	{
 		try {
@@ -109,7 +126,7 @@ public class Servidor {
 		        		// Por cada usuario registrado hay que recuperar sus datos
 		        		try {
 							Result<User> userResult = service.realizarQuery(new GetUser(username));
-							
+
 							switch (userResult)
 							{
 								case SuccessResult<User> userOk -> {
@@ -140,12 +157,12 @@ public class Servidor {
 	        e.printStackTrace();
 	    }
 	}
-	
+
 	private static void launchBanUser()
 	{
 		System.out.print("¿Que usuario quieres bloquear?: ");
 	    String userToBan = scanner.nextLine();
-	    
+
 	    try {
 	        Registry registry = LocateRegistry.getRegistry("localhost", Basededatos.PORT);
 	        ServicioDatosInterface service =
@@ -167,12 +184,12 @@ public class Servidor {
 	        e.printStackTrace();
 	    }
 	}
-	
+
 	private static void launchUnbanUser()
 	{
 		System.out.print("¿Que usuario quieres desbloquear?: ");
 	    String userToUnban = scanner.nextLine();
-	    
+
 	    try {
 	        Registry registry = LocateRegistry.getRegistry("localhost", Basededatos.PORT);
 	        ServicioDatosInterface service =
@@ -194,7 +211,7 @@ public class Servidor {
 	        e.printStackTrace();
 	    }
 	}
-	
+
 	public static void main(String[] str) throws Exception
 	{
 		// Start RMI registry

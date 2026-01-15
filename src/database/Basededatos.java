@@ -1,3 +1,20 @@
+/*
+ * Basededatos.java
+ * Copyright (C) 2025 Víctor Serrano Moroder vserrano157@alumno.uned.es
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package database;
 
 import java.rmi.RemoteException;
@@ -19,10 +36,10 @@ import servidor.ServicioAutenticacionImpl;
 
 public class Basededatos {
 	public static final String SERVICENAME = "ServicioDatos";
-	public static final int PORT = 45002; 
+	public static final int PORT = 45002;
 	private static Scanner scanner;
 	private static ServicioDatosInterface service;
-	
+
 	private static void launchMainMenu() {
 	    while (true) {
 	        System.out.println("""
@@ -41,7 +58,7 @@ public class Basededatos {
 	        }
 	    }
 	}
-	
+
 	private static void launchDatabaseInfoQuery()
 	{
 		System.out.println("--- Informacion de la Base de Datos ---");
@@ -49,13 +66,13 @@ public class Basededatos {
 		System.out.println("rmi://localhost:"+ PORT +"/"+SERVICENAME+"-/Basededatos\"");
 		System.out.println("---------------------------------------");
 	}
-	
+
 	private static void launchListTrinos()
 	{
 		try {
 			StringBuilder sb = new StringBuilder();
 			Result<ArrayList<Trino>> result = service.realizarQuery(new GetAllTrinos());
-			
+
 			switch(result)
 			{
 				case SuccessResult<ArrayList<Trino>> ok: {
@@ -73,13 +90,13 @@ public class Basededatos {
 					System.out.println("Error recuperando la lista de trinos.");
 				}
 			}
-			
+
 		} catch (RemoteException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static void main(String[] str)
 	{
 		scanner = new Scanner(System.in);
@@ -87,13 +104,13 @@ public class Basededatos {
         Registry registry;
 		try {
 			registry = LocateRegistry.createRegistry(45002);
-		
+
 	        // Create service
 	        service = new ServicioDatosImpl();
-	
+
 	        // Bind service to registry
 	        registry.rebind(SERVICENAME, service);
-        
+
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

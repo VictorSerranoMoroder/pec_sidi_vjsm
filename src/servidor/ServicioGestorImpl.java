@@ -1,3 +1,20 @@
+/*
+ * ServicioGestorImpl.java
+ * Copyright (C) 2025 Víctor Serrano Moroder vserrano157@alumno.uned.es
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package servidor;
 
 import java.rmi.RemoteException;
@@ -27,13 +44,13 @@ import database.Basededatos;
 
 public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioGestorInterface {
 	private static final long serialVersionUID = 3L;
-	
+
 	private HashMap<String, CallbackUsuarioInterface> callbackMap = new HashMap<>();
 
 	public ServicioGestorImpl() throws RemoteException {
         super();
     }
-	
+
 	@Override
 	public String solicitarInfoUsuario(String username) throws RemoteException {
 		System.out.println("Solicitud de informacion de usuario recibida.");
@@ -43,7 +60,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 	            (ServicioDatosInterface) registry.lookup(Basededatos.SERVICENAME);
 
 	        Result<User> result = service.realizarQuery(new GetUser(username));
-	        
+
 	        switch(result)
 	        {
 		        case SuccessResult<User> ok -> {
@@ -61,7 +78,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 		        	System.out.println(err.message());
 		        }
 	        }
-	        
+
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -84,7 +101,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 		        	// El trino ha sido añadido con éxito a la base de datos
 		        	// ahora hay que realizar un broadcast de este trino a todos sus seguidores
 		        	Result<ArrayList<String>> followerResult = service.realizarQuery(new GetFollowers(trino.GetNickPropietario()));
-			        
+
 		        	switch(followerResult)
 		        	{
 			        	case SuccessResult<ArrayList<String>> okGetFollowers -> {
@@ -97,7 +114,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 			        				try {
 			        					// Hay que recuperar los datos del usuario para comprobar si está bloqueado
 			        					Result <User> userResult = service.realizarQuery(new GetUser(username));
-			        					
+
 			        					switch (userResult) {
 				        					case SuccessResult<User> okGetUser -> {
 				        						if (!okGetUser.data().isBanned)
@@ -127,7 +144,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 		        	return false;
 		        }
 	        }
-	        
+
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -156,7 +173,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 		        	return err.message();
 		        }
 	        }
-	        
+
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -177,7 +194,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 	        {
 	        	result = service.ejecutarProcedimiento(new AddFollower(usernameSource, usernameTarget));
 	        }
-	        else 
+	        else
 	        {
 	        	result = service.ejecutarProcedimiento(new RemoveFollower(usernameSource, usernameTarget));
 	        }
@@ -191,7 +208,7 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 		        	return false;
 		        }
 	        }
-	        
+
 	    } catch (Exception e) {
 	        System.out.println("Error conectando al servidor");
 	        e.printStackTrace();
@@ -203,5 +220,5 @@ public class ServicioGestorImpl extends UnicastRemoteObject implements ServicioG
 	public void registrarTrinoCallback(String username, CallbackUsuarioInterface callback) throws RemoteException {
 		callbackMap.put(username, callback);
 	}
-	
+
 }

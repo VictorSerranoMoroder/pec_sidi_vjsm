@@ -1,3 +1,20 @@
+/*
+ * ServicioDatosImpl.java
+ * Copyright (C) 2025 Víctor Serrano Moroder vserrano157@alumno.uned.es
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 package database;
 
 import java.io.Serializable;
@@ -50,7 +67,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			case SetOnlineUser p -> handleSetOnlineUser(p);
 		};
 	}
-	
+
 	private Result handleGetUser(GetUser request)
 	{
 		Optional<User> result = modeloDatos.getUser(request.username());
@@ -63,7 +80,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			return new ErrorResult(request,"No se pudo encontrar el usuario " + request.username());
 		}
 	}
-	
+
 	private Result handleGetUsers(GetUsers request)
 	{
 		ArrayList<String> users = new ArrayList<String> (modeloDatos.getUsers());
@@ -71,28 +88,28 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		{
 			return new SuccessResult<>(request, users);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request,"No se pudo crear la lista de usuarios.");
 		}
 	}
-	
+
 	private Result handleGetFollowers(GetFollowers request)
 	{
 		// Si el opcional contiene un nulo significa que el intento de recuperar los datos ha fallado
 		// que un usuario no tenga seguidores no es un fallo, por lo que no debemos de comprobar si la lista está vacía
 		Optional<List<String>> followers = modeloDatos.getFollowers(request.username());
-		
+
 		if (followers.isPresent())
 		{
 			return new SuccessResult<ArrayList<String>>(request, (ArrayList<String>)followers.get());
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "Fallo al recuperar los seguidores");
 		}
 	}
-	
+
 	private Result handleGetAllTrinos(GetAllTrinos request)
 	{
 		ArrayList<Trino> result = new ArrayList<>();
@@ -106,12 +123,12 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 		});
 		return new SuccessResult<ArrayList<Trino>>(request, result);
 	}
-	
+
 	private Result handleGetTrinos(GetTrinos request)
 	{
 		return null;
 	}
-	
+
 	private Result handleGetFeed(GetFeed request)
 	{
 		Optional<String> feed =modeloDatos.getFeed(request.username());
@@ -124,37 +141,37 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			return new ErrorResult(request,"No se pudo recuperar el feed");
 		}
 	}
-	
+
 	private Result handleAddTrino(AddTrino request)
 	{
 		boolean success = modeloDatos.addTrino(request.trino().GetNickPropietario(), request.trino().GetTrino());
-		
+
 		if (success)
 		{
 			return new SuccessResult<>(request, true);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "No se pudo añadir el trino");
 		}
 	}
-	
+
 	private Result handleAddUser(AddUser request)
 	{
 		if (modeloDatos.addUser(request.user()))
 		{
 			return new SuccessResult<>(request, true);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "No se pudo crear el usuario.");
 		}
 	}
-	
+
 	private Result handleAddFollower(AddFollower request)
 	{
 		boolean success = modeloDatos.addFollower(request.userSource(), request.userTarget());
-		
+
 		if (success)
 		{
 			return new SuccessResult<>(request, true);
@@ -164,7 +181,7 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			return new ErrorResult(request, "No se pudo completar la operacion");
 		}
 	}
-	
+
 	private Result handleBanUser(BanUser request)
 	{
 		Optional<User> user = modeloDatos.getUser(request.username());
@@ -173,12 +190,12 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			user.get().isBanned = true;
 			return new SuccessResult<>(request, true);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "No se pudo banear al usuario.");
 		}
 	}
-	
+
 	private Result handleUnbanUser(UnbanUser request)
 	{
 		Optional<User> user = modeloDatos.getUser(request.username());
@@ -187,26 +204,26 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			user.get().isBanned = false;
 			return new SuccessResult<>(request, true);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "No se pudo unbanear al usuario.");
 		}
 	}
-	
+
 	private Result handleRemoveFollower(RemoveFollower request)
 	{
 		boolean success = modeloDatos.removeFollower(request.userSource(), request.userTarget());
-		
+
 		if (success)
 		{
 			return new SuccessResult<>(request, true);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "Error al eliminar subscripcion");
 		}
 	}
-	
+
 	private Result handleSetOnlineUser(SetOnlineUser request)
 	{
 		Optional<User> user = modeloDatos.getUser(request.username());
@@ -219,12 +236,12 @@ public class ServicioDatosImpl extends UnicastRemoteObject implements ServicioDa
 			user.get().isOnline = request.online();
 			return new SuccessResult<>(request, null);
 		}
-		else 
+		else
 		{
 			return new ErrorResult(request, "Error, no se encontró el usuario: "+ request.username());
 		}
 	}
 }
 
-    
+
 

@@ -1,6 +1,3 @@
-/**
- * 
- */
 module PEC_SIDI_VJSM {
 	requires java.rmi;
 
